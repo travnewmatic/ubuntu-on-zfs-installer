@@ -1,0 +1,77 @@
+#!/bin/bash
+
+block_device=/dev/sda
+pool_name=tnewman
+release=disco
+country=tw
+
+apt update
+apt install -y zfsutils-linux debootstrap
+
+modprobe zfs
+lsmod | grep zfs
+
+cat > /etc/udev/rules.d/90-zfs.rules << EOF
+KERNEL=="sd*[!0-9]", IMPORT{parent}=="ID_*", SYMLINK+="$env{ID_BUS}-$env{ID_SERIAL}"
+KERNEL=="sd*[0-9]", IMPORT{parent}=="ID_*", SYMLINK+="$env{ID_BUS}-$env{ID_SERIAL}-part%n"
+EOF
+
+udevadm trigger
+
+wipefs -a $block_device
+sgdisk -Z -n9:-8M:0 -t9:bf07 -c9:Reserved -n2:-8M:0 -t2:ef02 -c2:GRUB -n1:0:0 -t1:bf01 -c1:ZFS $block_device
+sgdisk -p $block_device
+
+zpool create -f -m none -o ashift=12 -O compression=lz4 $pool_name ${block_device}1
+zpool status -v
+
+zfs create -o mountpoint=/ $pool_name/root
+zfs create -o mountpoint=/home $pool_name/home
+zfs list
+
+zpool export $pool_name
+zpool import -d /dev/disk/by-id -R /mnt $pool_name
+
+debootstrap $release /mnt
+
+cat > /mnt/etc/udev/rules.d/90-zfs.rules << EOF
+KERNEL=="sd*[!0-9]", IMPORT{parent}=="ID_*", SYMLINK+="$env{ID_BUS}-$env{ID_SERIAL}"
+KERNEL=="sd*[0-9]", IMPORT{parent}=="ID_*", SYMLINK+="$env{ID_BUS}-$env{ID_SERIAL}-part%n"
+EOF
+
+cat > /mnt/etc/apt/sources.list << EOF
+###### Ubuntu Main Repos
+deb http://${country}.archive.ubuntu.com/ubuntu/ disco main restricted universe multiverse
+
+###### Ubuntu Update Repos
+deb http://${country}.archive.ubuntu.com/ubuntu/ ${release}-security main restricted universe multiverse
+deb http://${country}.archive.ubuntu.com/ubuntu/ ${release}-updates main restricted universe multiverse
+deb http://${country}.archive.ubuntu.com/ubuntu/ ${release}-proposed main restricted universe multiverse
+deb http://${country}.archive.ubuntu.com/ubuntu/ ${release}-backports main restricted universe multiverse
+EOF
+
+mount --rbind {,/mnt}/dev
+mount --rbind {,/mnt}/proc
+mount --rbind {,/mnt}/sys
+
+cat > /mnt/chrootscript << EOF
+apt update
+locale-gen en_US.UTF-8
+apt install -y zfsutils-linux zfs-initramfs zfs-dkms zfs-zed \
+               linux-image-generic linux-headers-generic \
+	       grub2-common grub-pc \
+	       acpi-support neovim ifupdown
+hostnamectl set-hostname ${pool_name}
+find /boot -iname '*zfs*'
+passwd root
+exit
+EOF
+chmod +x /mnt/chrootscript
+
+chroot /mnt /chrootscript
+
+grub-probe /mnt
+
+grub-install --root-directory=/mnt $block_device
+
+shutdown -rf now

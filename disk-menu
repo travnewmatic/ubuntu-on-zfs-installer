@@ -7,4 +7,13 @@ do [[ $type == disk && $ro == 0 ]] || continue
 	disks+=("$name")
 done < <(lsblk -rnotype,ro,kname)
 
-echo $disks
+for i in "${!disks[@]}"; do
+	    printf "%s) %s\n" "$i" "${disks[$i]}"
+done
+printf 'Select drive from the above list: '
+IFS= read -r opt
+if [[ $opt =~ ^[0-9]+$ ]] && (( (opt >= 0) && (opt <= "${#disks[@]}") )); then
+    echo "Install to ${disks[opt]}?"
+else
+    printf 'Invalid selection.\n'
+fi

@@ -59,7 +59,6 @@ apt install -y zfsutils-linux zfs-initramfs zfs-dkms zfs-zed \
                linux-image-generic linux-headers-generic \
 	       grub2-common grub-pc \
 	       acpi-support neovim ifupdown
-hostnamectl set-hostname ${pool_name}
 find /boot -iname '*zfs*'
 passwd root
 exit

@@ -16,7 +16,7 @@ done
 # prompt for selection
 read -rp "Which disk would you like to install to? " opt
 # test
-if [[ $opt =~ ^[0-9]+$ ]] && ((opt=10#$opt, opt >= 0)); then
+if [[ $opt =~ ^[0-9]+$ ]] && ((opt=10#$opt, opt >= 0 && opt < ${#disks[@]})); then
     echo "Install to ${disks[opt]}?"
 else
     printf 'Invalid selection.\n'

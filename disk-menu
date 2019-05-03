@@ -1,0 +1,10 @@
+#!/bin/bash
+
+disks=()
+while read -r type ro name
+do [[ $type == disk && $ro == 0 ]] || continue
+	printf -v name %b "$name"
+	disks+=("$name")
+done < <(lsblk -rnotype,ro,kname)
+
+echo $disks

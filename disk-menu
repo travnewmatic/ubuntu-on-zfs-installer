@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# create a list of disks
 disks=()
 while read -r type ro name
 do [[ $type == disk && $ro == 0 ]] || continue
@@ -7,11 +8,14 @@ do [[ $type == disk && $ro == 0 ]] || continue
 	disks+=("$name")
 done < <(lsblk -rnotype,ro,kname)
 
+# print that list of disks
 for i in "${!disks[@]}"; do
 	    printf "%s) %s\n" "$i" "${disks[$i]}"
 done
-printf 'Select drive from the above list: '
-IFS= read -r opt
+
+# prompt for selection
+read -rp "Which disk would you like to install to? " opt
+# test
 if [[ $opt =~ ^[0-9]+$ ]] && (( (opt >= 0) && (opt <= "${#disks[@]}") )); then
     echo "Install to ${disks[opt]}?"
 else

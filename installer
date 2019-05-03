@@ -11,7 +11,7 @@ apt install -y zfsutils-linux debootstrap
 modprobe zfs
 lsmod | grep zfs
 
-cat > /etc/udev/rules.d/90-zfs.rules << EOF
+cat > /etc/udev/rules.d/90-zfs.rules << \EOF
 KERNEL=="sd*[!0-9]", IMPORT{parent}=="ID_*", SYMLINK+="$env{ID_BUS}-$env{ID_SERIAL}"
 KERNEL=="sd*[0-9]", IMPORT{parent}=="ID_*", SYMLINK+="$env{ID_BUS}-$env{ID_SERIAL}-part%n"
 EOF
@@ -34,7 +34,7 @@ zpool import -d /dev/disk/by-id -R /mnt $pool_name
 
 debootstrap $release /mnt
 
-cat > /mnt/etc/udev/rules.d/90-zfs.rules << EOF
+cat > /mnt/etc/udev/rules.d/90-zfs.rules << \EOF
 KERNEL=="sd*[!0-9]", IMPORT{parent}=="ID_*", SYMLINK+="$env{ID_BUS}-$env{ID_SERIAL}"
 KERNEL=="sd*[0-9]", IMPORT{parent}=="ID_*", SYMLINK+="$env{ID_BUS}-$env{ID_SERIAL}-part%n"
 EOF

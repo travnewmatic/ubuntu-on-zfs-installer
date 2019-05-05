@@ -1,7 +1,7 @@
 #!/bin/bash
 #set -x
 
-menu() {
+disk_select() {
    confirm=false
 
    # prompt user until disk has been confirmed
@@ -36,7 +36,7 @@ menu() {
    done
 }
 
-install () {
+install_options () {
    confirm=false
    
    while [ $confirm = false ]; do
@@ -62,5 +62,5 @@ install () {
 
 }
 
-menu
-install
+disk_select
+install_options

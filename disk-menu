@@ -1,27 +1,38 @@
 #!/bin/bash
 
+confirm="no"
 
 menu() {
-   # create a list of disks
-   disks=()
-   while read -r type ro name
-   do [[ $type == disk && $ro == 0 ]] || continue
-      printf -v name %b "$name"
-      disks+=("$name")
-   done < <(lsblk -rnotype,ro,kname)
+   # prompt user until disk has been confirmed
+   while [ $confirm = "no" ] 
+      do
 
-   while true; do
+      # create a list of disks
+      disks=()
+      while read -r type ro name
+      do [[ $type == disk && $ro == 0 ]] || continue
+         printf -v name %b "$name"
+         disks+=("$name")
+      done < <(lsblk -rnotype,ro,kname)
+
       # print that list of disks
       for i in "${!disks[@]}"
          do
             printf "%s) %s\\n" "$i" "${disks[$i]}"
          done
+
       # prompt for selection
       read -rp "Which disk would you like to install to? " opt
       # test
       if [[ $opt =~ ^[0-9]+$ ]] && ((opt=10#$opt, opt >= 0 && opt < ${#disks[@]}))
          then
-            echo "Install to ${disks[opt]}?"
+            echo "REALLY SURE you want to install to ${disks[opt]}?"
+	    select yn in "Yes" "No"; do
+               case $yn in 
+                  Yes ) confirm="yes"; break;;
+                  No ) break;;
+               esac
+            done
          else
             printf 'Invalid selection.\n'
          fi

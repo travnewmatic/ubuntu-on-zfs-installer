@@ -2,30 +2,30 @@
 
 
 menu() {
-	# create a list of disks
-	disks=()
-	while read -r type ro name
-	do [[ $type == disk && $ro == 0 ]] || continue
-		printf -v name %b "$name"
-		disks+=("$name")
-	done < <(lsblk -rnotype,ro,kname)
+   # create a list of disks
+   disks=()
+   while read -r type ro name
+   do [[ $type == disk && $ro == 0 ]] || continue
+      printf -v name %b "$name"
+      disks+=("$name")
+   done < <(lsblk -rnotype,ro,kname)
 
-	while true; do
-		# print that list of disks
-		for i in "${!disks[@]}"
-			do
-				printf "%s) %s\\n" "$i" "${disks[$i]}"
-			done
-		# prompt for selection
-		read -rp "Which disk would you like to install to? " opt
-		# test
-		if [[ $opt =~ ^[0-9]+$ ]] && ((opt=10#$opt, opt >= 0 && opt < ${#disks[@]}))
-			then
-				echo "Install to ${disks[opt]}?"
-			else
-				printf 'Invalid selection.\n'
-			fi
-	done
+   while true; do
+      # print that list of disks
+      for i in "${!disks[@]}"
+         do
+            printf "%s) %s\\n" "$i" "${disks[$i]}"
+         done
+      # prompt for selection
+      read -rp "Which disk would you like to install to? " opt
+      # test
+      if [[ $opt =~ ^[0-9]+$ ]] && ((opt=10#$opt, opt >= 0 && opt < ${#disks[@]}))
+         then
+            echo "Install to ${disks[opt]}?"
+         else
+            printf 'Invalid selection.\n'
+         fi
+      done
 }
 
 menu

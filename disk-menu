@@ -1,10 +1,10 @@
 #!/bin/bash
-
-confirm="no"
+#set -x
+confirm=false
 
 menu() {
    # prompt user until disk has been confirmed
-   while [ $confirm = "no" ]; do
+   while [ $confirm = false ]; do
       # create a list of disks
       disks=()
       while read -r type ro name; do
@@ -23,12 +23,14 @@ menu() {
       # test
       if [[ $opt =~ ^[0-9]+$ ]] && ((opt=10#$opt, opt >= 0 && opt < ${#disks[@]})); then
          echo "REALLY SURE you want to install to ${disks[opt]}?"
-	 select yn in "Yes" "No"; do
-            case $yn in 
-               Yes ) confirm="yes"; break;;
-               No ) break;;
+	 while read -r -p "yes/no: " yn; do
+            case ${yn,,} in
+               y|yes) yn=yes; confirm=true; break;;
+	       n|no) yn=no; break;;
+	       *) printf >&2 "Please answer yes or no.\\n";;
             esac
          done
+      echo "Installing to ${disks[opt]}"
       else
          printf 'Invalid selection.\n'
       fi

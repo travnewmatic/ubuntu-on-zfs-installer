@@ -1,8 +1,9 @@
 #!/bin/bash
 #set -x
-confirm=false
 
 menu() {
+   confirm=false
+
    # prompt user until disk has been confirmed
    while [ $confirm = false ]; do
       # create a list of disks
@@ -20,21 +21,46 @@ menu() {
 
       # prompt for selection
       read -rp "Which disk would you like to install to? " opt
-      # test
       if [[ $opt =~ ^[0-9]+$ ]] && ((opt=10#$opt, opt >= 0 && opt < ${#disks[@]})); then
          echo "REALLY SURE you want to install to ${disks[opt]}?"
 	 while read -r -p "yes/no: " yn; do
             case ${yn,,} in
-               y|yes) yn=yes; confirm=true; break;;
+               y|yes) yn=yes; confirm=true; export target=${disks[opt]}; break;;
 	       n|no) yn=no; break;;
 	       *) printf >&2 "Please answer yes or no.\\n";;
             esac
          done
-      echo "Installing to ${disks[opt]}"
       else
          printf 'Invalid selection.\n'
       fi
    done
 }
 
+install () {
+   confirm=false
+   
+   while [ $confirm = false ]; do
+      release=disco
+      read -rp "Ubuntu release (default is $release)? "
+      pool_name=rpool
+      read -rp "ZFS pool name (default is $pool_name)? "
+      country=tw
+      read -rp "apt mirror country (default is $country)? "
+      echo "You have selected:"
+      printf "Ubuntu release: %s\\n" $release
+      printf "ZFS pool name: %s\\n" $pool_name
+      printf "apt mirror country: %s\\n" $country
+      echo "Is the above correct?"
+      while read -r -p "yes/no: " yn; do
+         case ${yn,,} in
+            y|yes) yn=yes; confirm=true; break;;
+            n|no) yn=no; break;;
+            *) printf >&2 "Please answer yes or no.\\n";;
+         esac
+      done
+   done
+
+}
+
 menu
+install
